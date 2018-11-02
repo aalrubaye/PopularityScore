@@ -15,7 +15,7 @@ final_db = database.final
 # client id and client secret are used in calling the github API
 # they will help to raise the maximum limit of calls per hour
 # note: you will need your private txt file that includes the private keys
-privateVar = open("privateVar.txt",'r').read()
+privateVar = open("privateVar2.txt",'r').read()
 client_id = privateVar.split('\n', 1)[0]
 client_secret = privateVar.split('\n', 1)[1]
 
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     remaining_requests = (fetch_url_information('https://api.github.com/rate_limit',1, 0))['resources']['core']['remaining']
     print (remaining_requests)
 
-    offset = 0
+    offset = 500000
     position = offset + 5000
 
     extract_data(offset,position)
