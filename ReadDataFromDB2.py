@@ -26,8 +26,8 @@ fork_stars_counts_limit_wanted = 10000
 
 def fetch_url_information(url,page, index):
     global remaining_requests
-    if remaining_requests < 3000:
-        dt = datetime.now() + timedelta(hours=1)
+    if remaining_requests < 50:
+        dt = datetime.now() + timedelta(minutes=10)
         stored = False
         while datetime.now() < dt:
             print ('rate limit exceeded, please wait... [currently on index = '+str(index)+']')
@@ -99,30 +99,34 @@ def extract_data(offset, position):
     repos_stored = fw
 
     index = offset
-    for e in events.find()[offset:position]:
-        repo = fetch_url_information(e['repo']['url'],1, index)
-        if repo is not None:
-            if (repo['forks_count'] < fork_stars_counts_limit_wanted) & (repo['stargazers_count'] < fork_stars_counts_limit_wanted):
-                if repo['name'] not in repos_stored:
-                    repos_stored += repo['name'] + ', '
-                    entry = {
-                                "repo_name": repo['name'],
-                                "repo_created_at": repo['created_at'],
-                                "repo_language": repo['language'],
-                                "repo_forks_count": repo['forks_count'],
-                                "repo_watchers_count": repo['subscribers_count'],
-                                "repo_stargazers_count": repo['stargazers_count'],
-                                "repo_url": e['repo']['url'],
-                                # fork events
-                                "forks": fetch_forks(repo['forks_url'], repo['forks_count'], index),
-                                # watch events
-                                "stars": fetch_stars(repo['stargazers_url'], repo['stargazers_count'], index)
-                            }
-                    print pprint.pprint(entry)
-                    final_db.insert(entry)
-        print str(index)+'...'+str(remaining_requests)
-        index += 1
-        print ('*'*100)
+    try:
+        for e in events.find()[offset:position]:
+            repo = fetch_url_information(e['repo']['url'],1, index)
+            if repo is not None:
+                if (repo['forks_count'] < fork_stars_counts_limit_wanted) & (repo['stargazers_count'] < fork_stars_counts_limit_wanted):
+                    if repo['name'] not in repos_stored:
+                        print 'forks -> '+str(repo['forks_count'])+', starts ->'+ str(repo['stargazers_count'])
+                        repos_stored += repo['name'] + ', '
+                        entry = {
+                                    "repo_name": repo['name'],
+                                    "repo_created_at": repo['created_at'],
+                                    "repo_language": repo['language'],
+                                    "repo_forks_count": repo['forks_count'],
+                                    "repo_watchers_count": repo['subscribers_count'],
+                                    "repo_stargazers_count": repo['stargazers_count'],
+                                    "repo_url": e['repo']['url'],
+                                    # fork events
+                                    "forks": fetch_forks(repo['forks_url'], repo['forks_count'], index),
+                                    # watch events
+                                    "stars": fetch_stars(repo['stargazers_url'], repo['stargazers_count'], index)
+                                }
+                        print pprint.pprint(entry)
+                        final_db.insert(entry)
+            print str(index)+'...'+str(remaining_requests)
+            index += 1
+            print ('*'*100)
+    except e:
+        print e
 
 
 # The main function
@@ -132,7 +136,7 @@ if __name__ == "__main__":
     remaining_requests = (fetch_url_information('https://api.github.com/rate_limit',1, 0))['resources']['core']['remaining']
     print (remaining_requests)
 
-    offset = 500000
+    offset = 517292
     position = offset + 5000
 
     extract_data(offset,position)

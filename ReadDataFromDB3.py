@@ -15,7 +15,7 @@ final_db = database.final
 # client id and client secret are used in calling the github API
 # they will help to raise the maximum limit of calls per hour
 # note: you will need your private txt file that includes the private keys
-privateVar = open("privateVar.txt",'r').read()
+privateVar = open("privateVar3.txt",'r').read()
 client_id = privateVar.split('\n', 1)[0]
 client_secret = privateVar.split('\n', 1)[1]
 
@@ -26,19 +26,19 @@ fork_stars_counts_limit_wanted = 10000
 
 def fetch_url_information(url,page, index):
     global remaining_requests
-    if remaining_requests < 50:
-            dt = datetime.now() + timedelta(minutes=10)
-            stored = False
-            while datetime.now() < dt:
-                print ('rate limit exceeded, please wait... [currently on index = '+str(index)+']')
-                if not stored:
-                    fw = open("repos_stored.txt","w")
-                    fw.write(repos_stored)
-                    fw.close()
-                    stored = True
-                time.sleep(10)
-            remaining_requests = 5000
-            extract_data(index,index+5000)
+    if remaining_requests < 100:
+        dt = datetime.now() + timedelta(minutes=10)
+        stored = False
+        while datetime.now() < dt:
+            print ('rate limit exceeded, please wait... [currently on index = '+str(index)+']')
+            if not stored:
+                fw = open("repos_stored.txt","w")
+                fw.write(repos_stored)
+                fw.close()
+                stored = True
+            time.sleep(10)
+        remaining_requests = 5000
+        extract_data(index,index+5000)
 
     else:
         new_url = add_client_id_client_secret_to_url(url,page)
@@ -105,24 +105,23 @@ def extract_data(offset, position):
             if repo is not None:
                 if (repo['forks_count'] < fork_stars_counts_limit_wanted) & (repo['stargazers_count'] < fork_stars_counts_limit_wanted):
                     if repo['name'] not in repos_stored:
-                        if int((repo['created_at'])[0:4]) < 2018:
-                            print 'forks -> '+str(repo['forks_count'])+', starts ->'+ str(repo['stargazers_count'])
-                            repos_stored += repo['name'] + ', '
-                            entry = {
-                                        "repo_name": repo['name'],
-                                        "repo_created_at": repo['created_at'],
-                                        "repo_language": repo['language'],
-                                        "repo_forks_count": repo['forks_count'],
-                                        "repo_watchers_count": repo['subscribers_count'],
-                                        "repo_stargazers_count": repo['stargazers_count'],
-                                        "repo_url": e['repo']['url'],
-                                        # fork events
-                                        "forks": fetch_forks(repo['forks_url'], repo['forks_count'], index),
-                                        # watch events
-                                        "stars": fetch_stars(repo['stargazers_url'], repo['stargazers_count'], index)
-                                    }
-                            print pprint.pprint(entry)
-                            final_db.insert(entry)
+                        print 'forks -> '+str(repo['forks_count'])+', starts ->'+ str(repo['stargazers_count'])
+                        repos_stored += repo['name'] + ', '
+                        entry = {
+                                    "repo_name": repo['name'],
+                                    "repo_created_at": repo['created_at'],
+                                    "repo_language": repo['language'],
+                                    "repo_forks_count": repo['forks_count'],
+                                    "repo_watchers_count": repo['subscribers_count'],
+                                    "repo_stargazers_count": repo['stargazers_count'],
+                                    "repo_url": e['repo']['url'],
+                                    # fork events
+                                    "forks": fetch_forks(repo['forks_url'], repo['forks_count'], index),
+                                    # watch events
+                                    "stars": fetch_stars(repo['stargazers_url'], repo['stargazers_count'], index)
+                                }
+                        print pprint.pprint(entry)
+                        final_db.insert(entry)
             print str(index)+'...'+str(remaining_requests)
             index += 1
             print ('*'*100)
@@ -137,7 +136,7 @@ if __name__ == "__main__":
     remaining_requests = (fetch_url_information('https://api.github.com/rate_limit',1, 0))['resources']['core']['remaining']
     print (remaining_requests)
 
-    offset = 17280
+    offset = 261426
     position = offset + 5000
 
     extract_data(offset,position)
