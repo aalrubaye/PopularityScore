@@ -26,6 +26,7 @@ fork_stars_counts_limit_wanted = 10000
 
 def fetch_url_information(url,page, index):
     global remaining_requests
+
     if remaining_requests < 50:
             dt = datetime.now() + timedelta(minutes=10)
             stored = False
@@ -133,11 +134,14 @@ def extract_data(offset, position):
 # The main function
 if __name__ == "__main__":
 
-    # finding the remaining limit rate of my GitHub requests
-    remaining_requests = (fetch_url_information('https://api.github.com/rate_limit',1, 0))['resources']['core']['remaining']
-    print (remaining_requests)
+    # # finding the remaining limit rate of my GitHub requests
+    # remaining_requests = (fetch_url_information('https://api.github.com/rate_limit',1, 0))['resources']['core']['remaining']
+    # print (remaining_requests)
+    # 
+    # offset = 109141
+    # position = offset + 5000
+    # 
+    # extract_data(offset,position)
 
-    offset = 17280
-    position = offset + 5000
-
-    extract_data(offset,position)
+    for e in final_db.find():
+        pprint.pprint(e)
